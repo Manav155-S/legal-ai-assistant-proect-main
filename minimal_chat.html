@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal AI Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Apply the "legal formal" font and make it more readable */
+        body,
+        button,
+        input,
+        select,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        .chat-message-text,
+        .font-serif {
+            font-family: 'EB Garamond', serif;
+            font-weight: 500; /* Bolder, more readable font */
+        }
+
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #a8a29e;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #78716c;
+        }
+
+        /* Custom styles for the "old paper" background */
+        body {
+            background-color: #F5F5DC;
+            /* Your chosen beige color */
+        }
+        
+        #chat-history {
+            background-color: #F5F5DC;
+        }
+    </style>
+</head>
+
+<body class="flex h-screen overflow-hidden">
+
+    <nav id="sidebar" class="w-72 flex-shrink-0 p-4 overflow-y-auto 
+                            bg-indigo-900 text-indigo-100 hidden md:block">
+        <h2 class="text-xl font-bold mb-4 text-white">Knowledge Base</h2>
+        <ul class="space-y-2">
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">Bharatiya Nyaya Sanhita 2023</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">Bharatiya Nagarik Suraksha Sanhita 2023</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">Bharatiya Sakshya Adhiniyam 2023</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">Industrial Disputes Act 1947</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">Information Technology Act 2000</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">Limitation Act 1963</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">Payment of Wages Act 1936</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">RERA Act 2016</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">Right to Information Act 2005</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">Sexual Harassment at Workplace Act 2013</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">The Registration Act 1908</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">Transfer of Property Act 1882</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">Code of Civil Procedure 1908</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">Companies Act 2013</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">Constitution of India</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">Consumer Protection Act 2019</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">Domestic Violence Act 2005</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">Hindu Marriage Act 1955</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">Income Tax Act 1961</a></li>
+            <li><a href="#" class="knowledge-item hover:text-white hover:bg-indigo-700 p-2 rounded block text-sm">Indian Contract Act 1872</a></li>
+        </ul>
+    </nav>
+
+    <div class="flex-1 flex flex-col h-screen">
+
+        <header class="shadow-md p-4 flex justify-between items-center bg-indigo-900 text-white">
+            <button id="menu-toggle" class="md:hidden p-2 rounded-md hover:bg-indigo-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+            </button>
+
+            <h1 class="text-xl font-bold text-center">Legal AI Assistant</h1>
+
+            <div class="flex items-center space-x-2">
+                <select id="language-selector" class="bg-indigo-700 text-white text-sm rounded-md border-indigo-500 p-2 focus:ring-2 focus:ring-white">
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी (Hindi)</option>
+                    <option value="bn">বাংলা (Bengali)</option>
+                    <option value="te">తెలుగు (Telugu)</option>
+                    <option value="mr">मराठी (Marathi)</option>
+                    <option valueV="ta">தமிழ் (Tamil)</option>
+                    <option value="ur">اردو (Urdu)</option>
+                    <option value="gu">ગુજરાતી (Gujarati)</option>
+                    <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                    <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                </select>
+                
+                <button id="clear-chat-button" title="Clear chat history" class="p-2 rounded-md hover:bg-indigo-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+
+                <div class="flex items-center space-x-2">
+                    <div id="status-light" class="w-3 h-3 rounded-full bg-red-500" title="Server Status"></div>
+                    <span id="status-text" class="text-sm hidden md:block">Offline</span>
+                </div>
+            </div>
+        </header>
+
+        <main id="chat-history" class="flex-1 p-4 overflow-y-auto space-y-4">
+            <div class="flex">
+                <div class="w-10 h-10 rounded-full bg-indigo-900 flex-shrink-0 flex items-center justify-center mr-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3.5a1 1 0 00.001 1.74l4.387 2.193V14.5a1 1 0 00.5.866l4 2.5a1 1 0 001 0l4-2.5a1 1 0 00.5-.866V9.513l4.387-2.193a1 1 0 000-1.74l-7-3.5zM3 7.618L10 11.2l7-3.582L10 4.036 3 7.618zM11 14.94v-3.829l3-1.5v3.829l-3 1.5zm-2 0l-3-1.5v-3.829l3 1.5v3.829z" />
+                    </svg>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md max-w-prose">
+                    <p class="chat-message-text text-black">Hello! I am a Legal AI Assistant.
+                        <br>How can I help you today? You can ask a question from the Knowledge Base or upload a document (PDF/TXT) for analysis.
+                    </p>
+                </div>
+            </div>
+            </main>
+
+        <footer class="bg-stone-100 p-4 shadow-inner">
+            <div class="flex items-center bg-white border-2 border-gray-300 rounded-lg p-2">
+                <input type="file" id="file-input" class="hidden" accept=".pdf,.txt">
+                <button id="file-upload-button" class="p-2 rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-indigo-100" title="Upload PDF/TXT document">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.414a4 4 0 00-5.656-5.656l-6.415 6.415a6 6 0 108.484 8.484L18.364 13" />
+                    </svg>
+                </button>
+                <input type="text" id="user-input" class="w-full px-4 py-2 text-black bg-white border-none focus:outline-none focus:ring-0" placeholder="Ask a question or describe your document...">
+                <button id="send-button" class="p-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700" title="Send message">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </button>
+            </div>
+            <div id="file-name-display" class="text-sm text-gray-600 mt-1 ml-2 hidden">File: <span></span> <button class="text-red-500 ml-2 font-bold" id="remove-file-button">X</button></div>
+        </footer>
+    </div>
+
+    <script>
+        const chatHistory = document.getElementById('chat-history');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const fileInput = document.getElementById('file-input');
+        const fileUploadButton = document.getElementById('file-upload-button');
+        const fileNameDisplay = document.getElementById('file-name-display');
+        const removeFileButton = document.getElementById('remove-file-button');
+        const statusLight = document.getElementById('status-light');
+        const statusText = document.getElementById('status-text');
+        const languageSelector = document.getElementById('language-selector');
+        const sidebar = document.getElementById('sidebar');
+        const menuToggle = document.getElementById('menu-toggle');
+        const knowledgeItems = document.querySelectorAll('.knowledge-item');
+        const clearChatButton = document.getElementById('clear-chat-button');
+
+        const API_URL = 'http://127.0.0.1:5000'; // Flask server URL
+
+        // --- Event Listeners ---
+
+        // Send message on button click
+        sendButton.addEventListener('click', handleUserMessage);
+
+        // Send message on "Enter" key
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleUserMessage();
+            }
+        });
+
+        // Trigger hidden file input
+        fileUploadButton.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Show selected file name
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                fileNameDisplay.querySelector('span').textContent = fileInput.files[0].name;
+                fileNameDisplay.classList.remove('hidden');
+            }
+        });
+
+        // Remove selected file
+        removeFileButton.addEventListener('click', () => {
+            fileInput.value = null; // Clear the file input
+            fileNameDisplay.classList.add('hidden');
+        });
+
+        // Toggle sidebar on mobile
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+        });
+
+        // Send message from Knowledge Base click
+        knowledgeItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const query = `Tell me about the ${e.target.textContent}`;
+                addMessageToHistory('User', query);
+                getBotResponse(query);
+                if (window.innerWidth < 768) {
+                    sidebar.classList.add('hidden');
+                }
+            });
+        });
+
+        // Clear chat history
+        clearChatButton.addEventListener('click', () => {
+            clearChatHistory();
+        });
+
+        // --- API & Chat Functions ---
+
+        /**
+         * Main function to handle user's message (text or file)
+         */
+        async function handleUserMessage() {
+            const message = userInput.value.trim();
+            const file = fileInput.files[0];
+
+            if (message === '' && !file) {
+                return; // Do nothing if input is empty
+            }
+
+            addMessageToHistory('User', message || `Analyzing file: ${file.name}`);
+            addTypingIndicator();
+
+            if (file) {
+                // If a file is attached, use the /analyze-doc endpoint
+                await getDocumentAnalysis(message, file);
+            } else {
+                // If no file, use the standard /chat endpoint
+                await getBotResponse(message);
+            }
+
+            // Clear inputs after sending
+            userInput.value = '';
+            fileInput.value = null;
+            fileNameDisplay.classList.add('hidden');
+        }
+
+        /**
+         * Fetches a response from the standard /chat endpoint
+         */
+        async function getBotResponse(message) {
+            try {
+                const response = await fetch(`${API_URL}/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        language: languageSelector.value
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    let errorJson;
+                    try {
+                        errorJson = JSON.parse(errorText);
+                    } catch (e) {
+                        throw new Error(errorText || `HTTP error! status: ${response.status}`);
+                    }
+                    throw new Error(errorJson.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                removeTypingIndicator();
+                addMessageToHistory('Legal AI Assistant', data.response);
+            } catch (error) {
+                removeTypingIndicator();
+                addMessageToHistory('Legal AI Assistant', `Sorry, an error occurred: ${error.message}`);
+            }
+        }
+
+        /**
+         * Sends file and message to the /analyze-doc endpoint
+         */
+        async function getDocumentAnalysis(message, file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('message', message);
+            formData.append('language', languageSelector.value);
+
+            try {
+                const response = await fetch(`${API_URL}/analyze-doc`, {
+                    method: 'POST',
+                    body: formData // No Content-Type header needed, browser sets it
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                removeTypingIndicator();
+                addMessageToHistory('Legal AI Assistant', data.response);
+            } catch (error) {
+                removeTypingIndicator();
+                addMessageToHistory('Legal AI Assistant', `${error.message}`);
+            }
+        }
+
+        /**
+         * Clears the chat history on the server and the UI
+         */
+        async function clearChatHistory() {
+            try {
+                // Call the /clear endpoint on the server
+                await fetch(`${API_URL}/clear`, { method: 'POST' });
+                
+                // Clear the UI, leaving only the welcome message
+                chatHistory.innerHTML = '';
+                addMessageToHistory('Legal AI Assistant', 
+                    'Hello! I am a Legal AI Assistant.' +
+                    '<br>How can I help you today? You can ask a question from the Knowledge Base or upload a document (PDF/TXT) for analysis.',
+                    true // Pass true to skip option parsing for the welcome message
+                );
+
+            } catch (error) {
+                console.error('Error clearing chat:', error);
+                addMessageToHistory('Legal AI Assistant', `Sorry, an error occurred while clearing the chat: ${error.message}`);
+            }
+        }
+        
+        /**
+         * Sends a user's chosen option as a new message
+         */
+        function sendOptionAsMessage(optionText) {
+            addMessageToHistory('User', optionText);
+            // Disable all option buttons after one is clicked
+            const buttons = document.querySelectorAll('.option-button');
+            buttons.forEach(button => {
+                button.disabled = true;
+                button.classList.add('opacity-50', 'cursor-not-allowed');
+                button.classList.remove('hover:bg-indigo-200');
+            });
+            
+            addTypingIndicator();
+            getBotResponse(optionText);
+        }
+
+        /**
+         * Adds a new message to the chat history UI
+         */
+        function addMessageToHistory(sender, message, skipOptionParsing = false) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('flex');
+
+            let contentHTML;
+            let optionsHTML = '';
+            
+            // --- MCQ/Options Parsing Logic ---
+            
+            // ** THIS IS THE FIX **
+            // This new regex is simpler and more robust.
+            // It captures everything inside [OPTIONS: ... ]
+            const optionsRegex = /\[OPTIONS:\s*([\s\S]*?)\]/;
+            
+            let optionsMatch = null;
+            
+            if (!skipOptionParsing) {
+                optionsMatch = message.match(optionsRegex);
+            }
+            
+            let cleanMessage = message;
+
+            if (optionsMatch && optionsMatch[1]) {
+                // 1. Remove the [OPTIONS: ...] tag from the message
+                cleanMessage = message.replace(optionsRegex, '').trim();
+
+                // 2. Parse the options string
+                // This regex finds all quoted strings
+                const optionParserRegex = /"(.*?)"/g;
+                let singleOptionMatch;
+                let optionsList = [];
+                
+                // Loop through all matches in the captured group (optionsMatch[1])
+                while ((singleOptionMatch = optionParserRegex.exec(optionsMatch[1])) !== null) {
+                    optionsList.push(singleOptionMatch[1]);
+                }
+
+                // 3. Build the HTML for the buttons
+                if (optionsList.length > 0) {
+                    optionsHTML = '<div class="mt-3 flex flex-wrap gap-2">';
+                    optionsList.forEach(option => {
+                        // We must escape single quotes in the option text for the onclick attribute
+                        const escapedOption = option.replace(/'/g, "\\'");
+                        optionsHTML += `<button class="option-button bg-indigo-100 text-indigo-800 text-sm font-medium px-3 py-1 rounded-full border border-indigo-300 hover:bg-indigo-200" onclick="sendOptionAsMessage('${escapedOption}')">
+                            ${option}
+                        </button>`;
+                    });
+                    optionsHTML += '</div>';
+                }
+            }
+            // --- End of Options Parsing ---
+
+
+            if (sender === 'User') {
+                messageElement.classList.add('justify-end'); // User messages align right
+                contentHTML = `
+                    <div class="bg-indigo-600 text-white p-4 rounded-lg shadow-md max-w-prose">
+                        <p class="chat-message-text">${cleanMessage}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0 flex items-center justify-center ml-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                `;
+            } else { // Bot message
+                messageElement.classList.add('justify-start'); // Bot messages align left
+                contentHTML = `
+                    <div class="w-10 h-10 rounded-full bg-indigo-900 flex-shrink-0 flex items-center justify-center mr-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3.5a1 1 0 00.001 1.74l4.387 2.193V14.5a1 1 0 00.5.866l4 2.5a1 1 0 001 0l4-2.5a1 1 0 00.5-.866V9.513l4.387-2.193a1 1 0 000-1.74l-7-3.5zM3 7.618L10 11.2l7-3.582L10 4.036 3 7.618zM11 14.94v-3.829l3-1.5v3.829l-3 1.5zm-2 0l-3-1.5v-3.829l3 1.5v3.829z" />
+                        </svg>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-md max-w-prose text-black">
+                        <div class="chat-message-text prose max-w-none prose-indigo prose-sm text-black">
+                            ${marked.parse(cleanMessage)}
+                        </div>
+                        ${optionsHTML} </div>
+                `;
+            }
+
+            messageElement.innerHTML = contentHTML;
+            chatHistory.appendChild(messageElement);
+            chatHistory.scrollTop = chatHistory.scrollHeight; // Scroll to bottom
+        }
+
+        /**
+         * Shows the "Bot is typing..." indicator
+         */
+        function addTypingIndicator() {
+            const typingElement = document.createElement('div');
+            typingElement.id = 'typing-indicator';
+            typingElement.classList.add('flex', 'justify-start');
+            typingElement.innerHTML = `
+                <div class="w-10 h-10 rounded-full bg-indigo-900 flex-shrink-0 flex items-center justify-center mr-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3.5a1 1 0 00.001 1.74l4.387 2.193V14.5a1 1 0 00.5.866l4 2.5a1 1 0 001 0l4-2.5a1 1 0 00.5-.866V9.513l4.387-2.193a1 1 0 000-1.74l-7-3.5zM3 7.618L10 11.2l7-3.582L10 4.036 3 7.618zM11 14.94v-3.829l3-1.5v3.829l-3 1.5zm-2 0l-3-1.5v-3.829l3 1.5v3.829z" />
+                    </svg>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md max-w-prose">
+                    <div class="flex space-x-1">
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0s;"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+                    </div>
+                </div>
+            `;
+            chatHistory.appendChild(typingElement);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        /**
+         * Removes the "Bot is typing..." indicator
+         */
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        /**
+         * Checks the server status every 5 seconds
+         */
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(`${API_URL}/`);
+                if (response.ok) {
+                    statusLight.classList.remove('bg-red-500');
+                    statusLight.classList.add('bg-green-500');
+                    statusText.textContent = 'Online';
+                } else {
+                    throw new Error('Server not ready');
+                }
+            } catch (error) {
+                statusLight.classList.remove('bg-green-500');
+                statusLight.classList.add('bg-red-500');
+                statusText.textContent = 'Offline';
+            }
+        }
+
+        // Initial check and periodic polling
+        checkServerStatus();
+        setInterval(checkServerStatus, 5000); // Check every 5 seconds
+    </script>
+</body>
+
+</html>
