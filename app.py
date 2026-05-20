@@ -1960,7 +1960,7 @@ def _cors_preflight():
 
 @app.route("/")
 def home():
-    return send_from_directory("templates", "index.html")
+    return send_from_directory(".", "minimal_chat.html")
 
 @app.route("/chat", methods=["POST", "OPTIONS"])
 def chat():
