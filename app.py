@@ -7,7 +7,6 @@ import logging
 import fitz
 import pytesseract
 from PIL import Image
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 from groq import Groq
 
 try:
@@ -39,7 +38,7 @@ if not GROQ_API_KEY:
         "Get a free key at: https://console.groq.com/keys"
     )
 
-EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
+EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 VECTOR_DB_PATH  = "legal_db"
 BM25_INDEX_PATH = "legal_db/bm25_index.pkl"
 
@@ -642,6 +641,20 @@ def is_landmark(doc: Document) -> bool:
 # ---------------------------------------------------------------------------
 # CENTRAL LLM CALL
 # ---------------------------------------------------------------------------
+def initialize_ai():
+    global db
+
+    if db is None:
+        logging.info("Initializing AI components...")
+
+        ef = load_embedding_model()
+
+        if ef:
+            db = load_vector_database(ef)
+
+        if db and bm25_index is None:
+            load_bm25_index()
+
 def llm_generate(
     prompt: str,
     system: str = "",
@@ -1981,7 +1994,7 @@ def chat():
         data = request.json
         if not data or "message" not in data:
             return jsonify({"error": "No message provided."}), 400
-
+        initialize_ai()
         message  = data["message"]
         language = data.get("language", "en")
         answer   = route_query(message, language)
@@ -2004,7 +2017,7 @@ def analyze_doc():
     try:
         if "file" not in request.files:
             return jsonify({"error": "No file uploaded."}), 400
-
+        initialize_ai()
         file     = request.files["file"]
         message  = request.form.get("message", "Please analyse this document.")
         language = request.form.get("language", "en")
@@ -2075,21 +2088,5 @@ def diagnostic_status():
 # STARTUP
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
-    ef = load_embedding_model()
-    if ef:
-        db = load_vector_database(ef)
-    if db:
-        load_bm25_index()
-
-    print("\n" + "=" * 70)
-    print("  Legal AI Server — v6.0  (BNS/BNSS/BSA era)")
-    print(f"  Primary : {PRIMARY_MODEL}  (Groq)")
-    print(f"  Fast    : {FAST_MODEL}  (Groq)")
-    print(f"  Fallback: {FALLBACK_MODEL}  (Google)")
-    print(f"  Intents : {len(ALL_INTENTS)} across 4 categories")
-    print(f"  Domains : {len(DOMAIN_MAP)} legal practice areas")
-    print(f"  DB      : {VECTOR_DB_PATH}")
-    print(f"  Law era : BNS / BNSS / BSA (July 1, 2024 onwards)")
-    print("=" * 70 + "\n")
-
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
