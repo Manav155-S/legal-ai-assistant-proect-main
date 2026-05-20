@@ -1957,10 +1957,7 @@ def _cors_preflight():
     r.headers["Access-Control-Allow-Headers"] = "Content-Type"
     r.headers["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS, PUT, DELETE"
     return r
-
-@app.route("/")
-def home():
-    return send_from_directory(".", "minimal_chat.html")
+    
 
 @app.route("/chat", methods=["POST", "OPTIONS"])
 def chat():
