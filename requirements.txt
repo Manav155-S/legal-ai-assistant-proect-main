@@ -13,3 +13,5 @@ transformers
 gunicorn
 pytesseract
 groq
+langchain-huggingface
+google-generativeai
