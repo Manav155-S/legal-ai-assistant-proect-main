@@ -1,0 +1,13 @@
+flask
+flask-cors
+openai
+chromadb
+PyMuPDF
+numpy
+pandas
+scikit-learn
+rank-bm25
+sentence-transformers
+torch
+transformers
+gunicorn
