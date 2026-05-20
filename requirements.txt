@@ -12,3 +12,4 @@ torch
 transformers
 gunicorn
 pytesseract
+groq
