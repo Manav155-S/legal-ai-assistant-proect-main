@@ -106,7 +106,7 @@
                     <option value="bn">বাংলা (Bengali)</option>
                     <option value="te">తెలుగు (Telugu)</option>
                     <option value="mr">मराठी (Marathi)</option>
-                    <option valueV="ta">தமிழ் (Tamil)</option>
+                    <option value="ta">தமிழ் (Tamil)</option>
                     <option value="ur">اردو (Urdu)</option>
                     <option value="gu">ગુજરાતી (Gujarati)</option>
                     <option value="kn">ಕನ್ನಡ (Kannada)</option>
@@ -176,7 +176,7 @@
         const knowledgeItems = document.querySelectorAll('.knowledge-item');
         const clearChatButton = document.getElementById('clear-chat-button');
 
-        const API_URL = 'http://127.0.0.1:5000'; // Flask server URL
+        const API_URL = window.location.origin; // Flask server URL
 
         // --- Event Listeners ---
 

@@ -8,6 +8,7 @@ import fitz
 import pytesseract
 from PIL import Image
 from groq import Groq
+from flask import send_from_directory
 
 try:
     from google import genai
@@ -1957,33 +1958,9 @@ def _cors_preflight():
     r.headers["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS, PUT, DELETE"
     return r
 
-@app.route("/", methods=["GET"])
-def health():
-    return jsonify({
-        "status":         "Legal AI server online - v6.0",
-        "domains":        list(DOMAIN_MAP.keys()),
-        "primary_model":  f"{PRIMARY_MODEL} (Groq)",
-        "fast_model":     f"{FAST_MODEL} (Groq)",
-        "fallback_model": f"{FALLBACK_MODEL} (Google - last resort)",
-        "law_era":        "BNS / BNSS / BSA (July 2024 onwards)",
-        "intents":        ALL_INTENTS,
-        "features": [
-            "14 intent types across 4 categories",
-            "Keyword-based risk scoring (HIGH/MEDIUM/LOW)",
-            "HIGH risk bypasses vagueness check for immediate response",
-            "Hinglish / regional term normalization",
-            "Multi-intent detection (primary + secondary)",
-            "Entity extraction (actor, location, urgency)",
-            "BNS/BNSS/BSA citations with IPC mapping",
-            "Emergency helplines injected in URGENT_HELP responses",
-            "Intent-specific response format templates",
-            "Hybrid BM25 + dense retrieval with RRF fusion",
-            "Landmark judgment boosting",
-            "Mandatory disclaimer on every response",
-            "Document analysis: DOC_ANALYSE and DOC_VERIFY modes",
-            "MCQ diagnostic questioning for vague queries",
-        ],
-    })
+@app.route("/")
+def home():
+    return send_from_directory("templates", "index.html")
 
 @app.route("/chat", methods=["POST", "OPTIONS"])
 def chat():
