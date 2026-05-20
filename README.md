@@ -3,7 +3,7 @@
 An AI-powered Indian Legal Assistant built using Flask, Groq LLMs, ChromaDB, BM25 retrieval, and multilingual support.
 
 Live Demo:  
-:contentReference[oaicite:0]{index=0}
+https://legal-ai-assistant-project-main.onrender.com/
 
 ---
 
